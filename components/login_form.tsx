@@ -1,7 +1,7 @@
 "use client";
 
 import { useState } from "react";
-import { useRouter } from "next/navigation";
+import {useParams, useRouter} from "next/navigation";
 import {
     Box,
     Button,
@@ -31,21 +31,21 @@ interface LoginError {
     path: string;
 }
 
-async function loginRequest(email: string, password: string): Promise<LoginSuccess> {
-    const res = await fetch(API_URL, {
+async function loginRequest(email: string, password: string): Promise<{ expiresIn: number }> {
+    const res = await fetch("/api/auth/login", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
+        credentials: "include",
         body: JSON.stringify({ email, password }),
     });
 
     const data = await res.json();
 
     if (!res.ok) {
-        const err = data as LoginError;
-        throw new Error(err.message ?? "Invalid email or password.");
+        throw new Error(data.message ?? "Invalid email or password.");
     }
 
-    return data as LoginSuccess;
+    return data;
 }
 
 export default function LoginForm() {
@@ -56,20 +56,16 @@ export default function LoginForm() {
     const [rememberMe, setRememberMe] = useState(false);
     const [isLoading, setIsLoading] = useState(false);
     const [error, setError] = useState<string | null>(null);
-
+    const { locale }        = useParams<{ locale: string }>();
     const handleSubmit = async (e: React.FormEvent) => {
         e.preventDefault();
         setError(null);
         setIsLoading(true);
 
         try {
-            const { token, expiresIn } = await loginRequest(email, password);
-
-            const storage = rememberMe ? localStorage : sessionStorage;
-            storage.setItem("auth_token", token);
-            storage.setItem("auth_expires_at", String(Date.now() + expiresIn * 1000));
-
-            router.push("/home");
+            const data = await loginRequest(email, password); // ← tady
+            sessionStorage.setItem("auth_expires_in", String(data.expiresIn));
+            router.push(`/${locale}/home`);
         } catch (err: unknown) {
             setError(err instanceof Error ? err.message : "Something went wrong.");
         } finally {
