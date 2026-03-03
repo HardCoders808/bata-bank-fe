@@ -3,7 +3,7 @@
 import React from "react";
 import { Link } from "@/app/i18n/navigation";
 import { usePathname } from "next/navigation";
-import { useTranslations } from "use-intl";
+import { useTranslations } from "next-intl";
 import { Box, Flex, IconButton, VStack, HStack, Text, Spacer } from "@chakra-ui/react";
 import { Tooltip } from "@/components/ui/tooltip";
 import {
@@ -142,7 +142,7 @@ function FamilyCard({ collapsed }: { collapsed: boolean }) {
                 FAMILY PLAN
             </Text>
 
-            <HStack spacing={-2} mb={3}>
+            <HStack gap={-2} mb={3}>
                 <Box
                     w="28px"
                     h="28px"

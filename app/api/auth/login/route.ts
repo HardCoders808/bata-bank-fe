@@ -1,52 +1,70 @@
 import { NextRequest, NextResponse } from "next/server";
+import { cookies } from "next/headers";
 
-const BANK_API = "https://bank.dev-toner.com/v1/api/v1/auth/login";
+const BANK_API = "https://bank.dev-toner.com/api/v1/auth/login";
 
 export async function POST(req: NextRequest) {
     try {
         const { email, password } = await req.json();
+        const cookieStore = await cookies();
 
+        console.log(`[login] Attempting bank login: ${BANK_API}`);
         const bankRes = await fetch(BANK_API, {
             method: "POST",
             headers: { "Content-Type": "application/json" },
-            credentials: "include",
             body: JSON.stringify({ email, password }),
         });
+
+        const bankStatus = bankRes.status;
+        const bankCookies = bankRes.headers.getSetCookie();
+        console.log(`[login] Bank response status: ${bankStatus}`);
+        console.log(`[login] Bank cookies received: ${bankCookies.length}`);
 
         const data = await bankRes.json();
 
         if (!bankRes.ok) {
             return NextResponse.json(
                 { message: data.message ?? "Invalid email or password." },
-                { status: bankRes.status }
+                { status: bankStatus }
             );
         }
 
         const { token, expiresIn } = data;
 
-        const res = NextResponse.json({ ok: true, expiresIn, token });
+        // 1. Forward rotated cookies (refresh_token, device_id)
+        bankCookies.forEach((cookieStr) => {
+            // Simple parser for Set-Cookie string
+            const parts = cookieStr.split(";").map(p => p.trim());
+            const [nameValue, ...attrs] = parts;
+            const [name, ...valueParts] = nameValue.split("=");
+            const value = valueParts.join("=");
 
-        const bankCookies = bankRes.headers.getSetCookie();
-        bankCookies.forEach((cookie) => {
-            let modified = cookie
-                .replace(/Domain=[^;]+;?\s*/i, "")
-                .replace(/Path=[^;]+;?\s*/i, "Path=/; ");
+            const isSecure = attrs.some(a => a.toLowerCase() === "secure");
+            const isHttpOnly = attrs.some(a => a.toLowerCase() === "httponly");
             
-            if (process.env.NODE_ENV !== "production") {
-                modified = modified.replace(/Secure;?\s*/i, "");
-            }
-            
-            modified = modified.replace(/SameSite=[^;]+;?\s*/i, "SameSite=Lax; ");
-            res.headers.append("Set-Cookie", modified.trim().replace(/;$/, ""));
+            cookieStore.set(name, value, {
+                path: "/",
+                httpOnly: isHttpOnly,
+                secure: process.env.NODE_ENV === "production" ? isSecure : false,
+                sameSite: "lax",
+                // We don't manually set Max-Age here to preserve what the bank sent
+                // but Next.js cookies().set() is more reliable
+            });
+            console.log(`[login] Forwarded cookie: ${name}`);
         });
 
-        const authCookie = `auth_token=${token}; Path=/; HttpOnly; SameSite=Lax; Max-Age=${expiresIn}${
-            process.env.NODE_ENV === "production" ? "; Secure" : ""
-        }`;
-        res.headers.append("Set-Cookie", authCookie);
+        // 2. Set auth_token
+        cookieStore.set("auth_token", token, {
+            path: "/",
+            httpOnly: true,
+            secure: process.env.NODE_ENV === "production",
+            sameSite: "lax",
+            maxAge: expiresIn
+        });
 
-        return res;
-    } catch {
+        return NextResponse.json({ ok: true, expiresIn, token });
+    } catch (err) {
+        console.error("[login] Fatal error:", err);
         return NextResponse.json(
             { message: "Something went wrong." },
             { status: 500 }

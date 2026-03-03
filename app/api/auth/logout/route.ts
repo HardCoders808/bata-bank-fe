@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 
-const BANK_API = "https://bank.dev-toner.com/v1/api/v1/auth/logout";
+const BANK_API = "https://bank.dev-toner.com/api/v1/auth/logout";
 
 export async function POST(req: NextRequest) {
     try {

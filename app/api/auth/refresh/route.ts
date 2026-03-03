@@ -1,16 +1,14 @@
 import { NextRequest, NextResponse } from "next/server";
+import { cookies } from "next/headers";
 
-const BANK_API = "https://bank.dev-toner.com/v1/api/v1/auth/refresh";
+const BANK_API = "https://bank.dev-toner.com/api/v1/auth/refresh";
 
 export async function POST(req: NextRequest) {
     try {
+        const cookieStore = await cookies();
         const cookieHeader = req.headers.get("cookie") ?? "";
         
-        // Debug: check if refresh_token is actually present
-        const hasRefreshToken = cookieHeader.includes("refresh_token");
-        const hasDeviceId = cookieHeader.includes("device_id");
-        console.log(`[refresh] Incoming cookies present: refresh_token=${hasRefreshToken}, device_id=${hasDeviceId}`);
-
+        console.log(`[refresh] Triggering bank refresh: ${BANK_API}`);
         const bankRes = await fetch(BANK_API, {
             method: "POST",
             headers: {
@@ -21,6 +19,10 @@ export async function POST(req: NextRequest) {
         });
 
         const bankStatus = bankRes.status;
+        const bankCookies = bankRes.headers.getSetCookie();
+        console.log(`[refresh] Bank response status: ${bankStatus}`);
+        console.log(`[refresh] Bank cookies received: ${bankCookies.length}`);
+
         const data = await bankRes.json();
         
         if (!bankRes.ok) {
@@ -32,30 +34,35 @@ export async function POST(req: NextRequest) {
         }
 
         const { token, expiresIn } = data;
-        const res = NextResponse.json({ ok: true, expiresIn, token });
 
-        // 1. Forward and clean new bank cookies (rotated refresh_token)
-        const bankCookies = bankRes.headers.getSetCookie();
-        bankCookies.forEach((cookie) => {
-            let modified = cookie
-                .replace(/Domain=[^;]+;?\s*/i, "")
-                .replace(/Path=[^;]+;?\s*/i, "Path=/; ");
+        // 1. Forward rotated cookies
+        bankCookies.forEach((cookieStr) => {
+            const parts = cookieStr.split(";").map(p => p.trim());
+            const [nameValue, ...attrs] = parts;
+            const [name, ...valueParts] = nameValue.split("=");
+            const value = valueParts.join("=");
+
+            const isSecure = attrs.some(a => a.toLowerCase() === "secure");
+            const isHttpOnly = attrs.some(a => a.toLowerCase() === "httponly");
             
-            if (process.env.NODE_ENV !== "production") {
-                modified = modified.replace(/Secure;?\s*/i, "");
-            }
-            
-            modified = modified.replace(/SameSite=[^;]+;?\s*/i, "SameSite=Lax; ");
-            res.headers.append("Set-Cookie", modified.trim().replace(/;$/, ""));
+            cookieStore.set(name, value, {
+                path: "/",
+                httpOnly: isHttpOnly,
+                secure: process.env.NODE_ENV === "production" ? isSecure : false,
+                sameSite: "lax",
+            });
         });
 
         // 2. Set new auth_token
-        const authCookie = `auth_token=${token}; Path=/; HttpOnly; SameSite=Lax; Max-Age=${expiresIn}${
-            process.env.NODE_ENV === "production" ? "; Secure" : ""
-        }`;
-        res.headers.append("Set-Cookie", authCookie);
+        cookieStore.set("auth_token", token, {
+            path: "/",
+            httpOnly: true,
+            secure: process.env.NODE_ENV === "production",
+            sameSite: "lax",
+            maxAge: expiresIn
+        });
 
-        return res;
+        return NextResponse.json({ ok: true, expiresIn, token });
     } catch (err) {
         console.error("[refresh] Fatal error:", err);
         return NextResponse.json(
@@ -64,3 +71,4 @@ export async function POST(req: NextRequest) {
         );
     }
 }
+
