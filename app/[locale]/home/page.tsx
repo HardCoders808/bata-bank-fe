@@ -1,10 +1,15 @@
-import Navbar from "@/components/navbar";
+"use client";
 
-export default function Home2() {
+import Navbar from "@/components/navbar";
+import { useTranslations } from "use-intl";
+
+export default function Home() {
+    const t  = useTranslations("Navbar");
+
     return (
         <div className="flex min-h-screen items-center justify-center bg-zinc-50 font-sans">
-
-            asdasdas
+            <Navbar />
+            {t("home")}
         </div>
     );
 }

@@ -1,4 +1,4 @@
-'use clients';
+"use client";
 
 import { Flex } from "@chakra-ui/react";
 

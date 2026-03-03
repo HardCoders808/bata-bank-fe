@@ -3,17 +3,22 @@
 import React from "react";
 import NextLink from "next/link";
 import { usePathname } from "next/navigation";
-import {
-    Box,
-    Flex,
-    IconButton,
-    VStack,
-    HStack,
-    Text,
-    Spacer
-} from "@chakra-ui/react";
+import { useTranslations } from "use-intl";
+import { Box, Flex, IconButton, VStack, HStack, Text, Spacer } from "@chakra-ui/react";
 import { Tooltip } from "@/components/ui/tooltip";
-import { PanelLeftClose, PanelLeftOpen, Home, BarChart3, Info, Settings } from "lucide-react";
+import {
+    Landmark,
+    PanelLeftClose,
+    PanelLeftOpen,
+    Home,
+    BarChart3,
+    Info,
+    CreditCard,
+    ChartNoAxesColumn,
+    MessageCircle,
+    Settings,
+    Users,
+} from "lucide-react";
 
 type NavItem = {
     label: string;
@@ -23,16 +28,18 @@ type NavItem = {
 
 const NAV_ITEMS: NavItem[] = [
     { label: "Home", href: "/home", icon: Home },
-    { label: "Info", href: "/info", icon: Info },
-    { label: "Stats", href: "/stats", icon: BarChart3 },
+    { label: "Accounts", href: "/accounts", icon: Info },
+    { label: "Cards", href: "/cards", icon: CreditCard },
+    { label: "Payments", href: "/payments", icon: BarChart3 },
+    { label: "Stats", href: "/stats", icon: ChartNoAxesColumn },
+    { label: "Communication", href: "/communication", icon: MessageCircle },
+    { label: "Settings", href: "/settings", icon: Settings },
+    // sysAdmin
+    { label: "Users", href: "/users", icon: Users },
 ];
 
-const BOTTOM_ITEMS: NavItem[] = [{ label: "Settings", href: "/settings", icon: Settings }];
-
 function isActivePath(pathname: string, href: string) {
-    if(href === "/")
-        return pathname === "/";
-
+    if (href === "/") return pathname === "/";
     return pathname === href || pathname.startsWith(href + "/");
 }
 
@@ -55,8 +62,8 @@ function NavRow({
             gap={collapsed ? 0 : 3}
             justifyContent={collapsed ? "center" : "flex-start"}
             borderRadius="lg"
-            bg={active ? "bg.subtle" : "transparent"}
-            _hover={{ bg: active ? "bg.subtle" : "bg.muted" }}
+            bg={active ? "#082D3F" : "transparent"}
+            _hover={{ bg: active ? "#082D3F" : "#082D3F" }}
             position="relative"
             transition="background 120ms ease"
         >
@@ -68,7 +75,7 @@ function NavRow({
                 bottom="8px"
                 w="3px"
                 borderRadius="full"
-                bg={active ? "blue.500" : "transparent"}
+                bg={active ? "#03646A" : "transparent"}
             />
 
             <Box
@@ -79,7 +86,7 @@ function NavRow({
                 justifyContent="center"
                 minW={collapsed ? "40px" : "24px"}
             >
-                <Icon size={18} />
+                <Icon size={18} color="#008080" strokeWidth={3}/>
             </Box>
 
             {!collapsed && (
@@ -119,9 +126,75 @@ function NavRow({
     );
 }
 
+function FamilyCard({ collapsed }: { collapsed: boolean }) {
+    if (collapsed) return null; // když je navbar collapsed, card schováme
+
+    return (
+        <Box
+            mt={4}
+            p={3}
+            borderRadius="xl"
+            bg="#0E243B"
+            border="1px solid rgba(0,128,128,0.2)"
+        >
+            <Text fontSize="xs" color="gray.400" mb={2}>
+                FAMILY PLAN
+            </Text>
+
+            <HStack spacing={-2} mb={3}>
+                <Box
+                    w="28px"
+                    h="28px"
+                    borderRadius="full"
+                    bg="#008080"
+                    border="2px solid #0A182E"
+                />
+                <Box
+                    w="28px"
+                    h="28px"
+                    borderRadius="full"
+                    bg="#03646A"
+                    border="2px solid #0A182E"
+                />
+                <Box
+                    w="28px"
+                    h="28px"
+                    borderRadius="full"
+                    bg="#014c4c"
+                    border="2px solid #0A182E"
+                />
+                <Box
+                    w="28px"
+                    h="28px"
+                    borderRadius="full"
+                    bg="#1e293b"
+                    border="2px solid #0A182E"
+                    display="flex"
+                    alignItems="center"
+                    justifyContent="center"
+                    fontSize="xs"
+                    color="white"
+                >
+                    +1
+                </Box>
+            </HStack>
+
+            <Text
+                fontSize="xs"
+                color="#008080"
+                cursor="pointer"
+                _hover={{ textDecoration: "underline" }}
+            >
+                Manage family
+            </Text>
+        </Box>
+    );
+}
+
 export default function Navbar() {
-    const pathname = usePathname();
+    const pathname                  = usePathname();
     const [collapsed, setCollapsed] = React.useState(false);
+    const t = useTranslations("Navbar");
 
     return (
         <Flex
@@ -130,7 +203,7 @@ export default function Navbar() {
             top="0"
             h="100dvh"
             w={collapsed ? "72px" : "260px"}
-            bg="gray.500"
+            bg="#0A182E"
             borderRightWidth="1px"
             borderRightColor="border"
             px={collapsed ? 2 : 3}
@@ -142,18 +215,28 @@ export default function Navbar() {
             {/* Header */}
             <HStack w="100%" gap={2} px={collapsed ? 0 : 1} mb={3}>
                 {!collapsed && (
-                    <Text fontWeight="bold" fontSize="sm" truncate>
-                        Menu
-                    </Text>
+                    <div className="flex items-center gap-3">
+                        <Landmark color="#008080" />
+                        <Text fontWeight="bold" fontSize="sm" truncate color="#008080">
+                            Bata Bank
+                        </Text>
+                    </div>
                 )}
+
                 <Spacer />
+
                 <IconButton
                     aria-label={collapsed ? "Expand sidebar" : "Collapse sidebar"}
                     size="sm"
                     variant="ghost"
+                    color="white"
+                    _hover={{ bg: "#025e5e" }}
+                    _active={{ bg: "#014c4c" }}
                     onClick={() => setCollapsed((v) => !v)}
                 >
-                    {collapsed ? <PanelLeftOpen size={18} /> : <PanelLeftClose size={18} />}
+                    {collapsed
+                        ? <PanelLeftOpen size={18} />
+                        : <PanelLeftClose size={18} />}
                 </IconButton>
             </HStack>
 
@@ -169,17 +252,7 @@ export default function Navbar() {
                 ))}
             </VStack>
 
-            {/* Bottom items */}
-            <VStack alignItems="stretch" gap={1} pt={2}>
-                {BOTTOM_ITEMS.map((item) => (
-                    <NavRow
-                        key={item.href}
-                        item={item}
-                        collapsed={collapsed}
-                        active={isActivePath(pathname, item.href)}
-                    />
-                ))}
-            </VStack>
+            <FamilyCard collapsed={collapsed} />
         </Flex>
     );
 }
