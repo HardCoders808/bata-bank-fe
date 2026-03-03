@@ -1,0 +1,24 @@
+{
+  "LocaleSwitcher": {
+    "label": "Language",
+    "locales": {
+      "cs": "Czech",
+      "en": "English"
+    }
+  },
+  "Navbar": {
+    "home": "Home",
+    "title": "WilloSphere",
+    "search": "Search"
+  },
+  "Footer": {
+    "rights": "All rights reserved"
+  },
+  "HomePage": {
+    "title": "Header"
+  },
+
+  "RegistrationForm": {
+    "title": "Create account"
+  }
+}

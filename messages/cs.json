@@ -1,0 +1,24 @@
+{
+  "LocaleSwitcher": {
+    "label": "Jazyk",
+    "locales": {
+      "cs": "Čeština",
+      "en": "Angličtina"
+    }
+  },
+  "Navbar": {
+    "home": "Domů",
+    "title": "WilloSphere",
+    "search": "Hledat"
+  },
+  "Footer": {
+    "rights": "Všechna práva vyhrazena"
+  },
+  "HomePage": {
+    "title": "Nadpis"
+  },
+
+  "RegistrationForm": {
+    "title": "Vytvořit účet"
+  }
+}

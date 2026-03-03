@@ -1,19 +1,59 @@
-'use client';
+import type { Metadata } from "next";
+import { Geist, Geist_Mono } from "next/font/google";
+import { NextIntlClientProvider } from "next-intl";
+import { notFound } from "next/navigation";
+import { hasLocale } from "next-intl";
+import { routing } from "../i18n/routing";
+import "../globals.css";
+import {Provider} from "@/components/ui/provider";
 
-import { useParams, useRouter } from "next/navigation";
-import { ReactNode, useEffect } from "react";
-import Navbar from "@/components/navbar";
+const geistSans = Geist({
+    variable: "--font-geist-sans",
+    subsets: ["latin"],
+});
 
-export default function HomePageLayout({ children }: { children: ReactNode }) {
-    const router                  = useRouter();
-    const { locale }              = useParams<{ locale: string }>();
+const geistMono = Geist_Mono({
+    variable: "--font-geist-mono",
+    subsets: ["latin"],
+});
+
+export const metadata: Metadata = {
+    title: "WilloSphere",
+    description: "Music platform",
+};
+
+export default async function LocaleLayout({ children, params }: {
+    children: React.ReactNode;
+    params: { locale: string };
+}) {
+    const { locale } = await params;
+
+    if (!hasLocale(routing.locales, locale)) {
+        notFound();
+    }
+
+    const messagesMap = {
+        cs: () => import("@/messages/cs.json"),
+        en: () => import("@/messages/en.json"),
+    };
+
+    const messages = (await messagesMap[locale as "cs" | "en"]()).default;
 
     return (
-        <div className="">
-        this is locale layout
-            {children}
-        </div>
+        <html
+            lang={locale}
+            suppressHydrationWarning
+        >
+        <body
+            className={`${geistSans.variable} ${geistMono.variable} flex min-h-screen flex-col antialiased`}
+            suppressHydrationWarning
+        >
+        <NextIntlClientProvider locale={locale} messages={messages}>
+            <Provider>
+                {children}
+            </Provider>
+        </NextIntlClientProvider>
+        </body>
+        </html>
     );
 }
-
-
