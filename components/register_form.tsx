@@ -62,7 +62,16 @@ function PasswordStrengthHint({ password }: { password: string }) {
     );
 }
 
-function InputField({ label, icon, type = "text", placeholder, value, onChange, rightElement, borderColor }: {
+function InputField({
+                        label,
+                        icon,
+                        type = "text",
+                        placeholder,
+                        value,
+                        onChange,
+                        rightElement,
+                        borderColor,
+                    }: {
     label: string;
     icon: React.ReactNode;
     type?: string;
