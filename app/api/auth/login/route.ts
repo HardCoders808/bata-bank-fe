@@ -26,23 +26,24 @@ export async function POST(req: NextRequest) {
 
         const res = NextResponse.json({ ok: true, expiresIn, token });
 
-        // Forward all Set-Cookie headers from the bank API, but strip the Domain attribute
-        // to ensure they are set for our domain.
         const bankCookies = bankRes.headers.getSetCookie();
         bankCookies.forEach((cookie) => {
-            // Remove Domain attribute if present
-            const modifiedCookie = cookie.replace(/Domain=[^;]+;?\s*/i, "");
-            res.headers.append("Set-Cookie", modifiedCookie);
+            let modified = cookie
+                .replace(/Domain=[^;]+;?\s*/i, "")
+                .replace(/Path=[^;]+;?\s*/i, "Path=/; ");
+            
+            if (process.env.NODE_ENV !== "production") {
+                modified = modified.replace(/Secure;?\s*/i, "");
+            }
+            
+            modified = modified.replace(/SameSite=[^;]+;?\s*/i, "SameSite=Lax; ");
+            res.headers.append("Set-Cookie", modified.trim().replace(/;$/, ""));
         });
 
-        // Also set our local auth_token cookie
-        res.cookies.set("auth_token", token, {
-            httpOnly: true,
-            secure: process.env.NODE_ENV === "production",
-            sameSite: "lax", // Changed to lax to be safer with some redirect flows
-            maxAge: expiresIn,
-            path: "/",
-        });
+        const authCookie = `auth_token=${token}; Path=/; HttpOnly; SameSite=Lax; Max-Age=${expiresIn}${
+            process.env.NODE_ENV === "production" ? "; Secure" : ""
+        }`;
+        res.headers.append("Set-Cookie", authCookie);
 
         return res;
     } catch {

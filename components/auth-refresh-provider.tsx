@@ -30,7 +30,8 @@ export function AuthRefreshProvider({ children }: { children: React.ReactNode })
             try {
                 console.log("[AuthRefresh] Triggering refresh...");
                 const res = await fetch("/api/auth/refresh", {
-                    method: "POST"
+                    method: "POST",
+                    credentials: "include"
                 });
                 if (!res.ok) {
                     console.error("[AuthRefresh] Refresh failed with status:", res.status);
