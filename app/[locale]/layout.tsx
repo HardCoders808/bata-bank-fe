@@ -10,7 +10,8 @@ export default function HomePageLayout({ children }: { children: ReactNode }) {
 
     return (
         <div className="">
-        homepagelayout???
+        this is locale layout
+            {children}
         </div>
     );
 }
