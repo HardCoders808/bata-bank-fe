@@ -9,7 +9,6 @@ export default function HomeLayout({ children }: { children: ReactNode }) {
 
     return (
         <div className="flex flex-row min-h-screen">
-            <Navbar />
             <main className="flex-1 p-4 overflow-auto">
                 {children}
             </main>
