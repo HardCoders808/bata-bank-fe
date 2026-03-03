@@ -29,20 +29,22 @@ export async function POST(req: NextRequest) {
 
         const { token, expiresIn } = data;
 
-        const res = NextResponse.json({ ok: true, expiresIn });
+        const res = NextResponse.json({ ok: true, expiresIn, token });
 
         res.cookies.set("auth_token", token, {
             httpOnly: true,
             secure: process.env.NODE_ENV === "production",
-            sameSite: "strict",
+            sameSite: "lax",
             maxAge: expiresIn,
             path: "/",
         });
 
-        const setCookie = bankRes.headers.getSetCookie?.() ?? [];
-        console.log("[refresh] set-cookie from bank:", setCookie); // ← nové cookies z API
-        setCookie.forEach((cookie) => {
-            res.headers.append("Set-Cookie", cookie);
+        const bankCookies = bankRes.headers.getSetCookie();
+        console.log("[refresh] set-cookie from bank:", bankCookies);
+        bankCookies.forEach((cookie) => {
+            // Remove Domain attribute to store on our frontend domain
+            const modifiedCookie = cookie.replace(/Domain=[^;]+;?\s*/i, "");
+            res.headers.append("Set-Cookie", modifiedCookie);
         });
 
         return res;

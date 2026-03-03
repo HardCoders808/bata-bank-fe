@@ -24,12 +24,22 @@ export async function POST(req: NextRequest) {
 
         const { token, expiresIn } = data;
 
-        const res = NextResponse.json({ ok: true, expiresIn });
+        const res = NextResponse.json({ ok: true, expiresIn, token });
 
+        // Forward all Set-Cookie headers from the bank API, but strip the Domain attribute
+        // to ensure they are set for our domain.
+        const bankCookies = bankRes.headers.getSetCookie();
+        bankCookies.forEach((cookie) => {
+            // Remove Domain attribute if present
+            const modifiedCookie = cookie.replace(/Domain=[^;]+;?\s*/i, "");
+            res.headers.append("Set-Cookie", modifiedCookie);
+        });
+
+        // Also set our local auth_token cookie
         res.cookies.set("auth_token", token, {
             httpOnly: true,
             secure: process.env.NODE_ENV === "production",
-            sameSite: "strict",
+            sameSite: "lax", // Changed to lax to be safer with some redirect flows
             maxAge: expiresIn,
             path: "/",
         });

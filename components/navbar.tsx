@@ -1,7 +1,7 @@
 "use client";
 
 import React from "react";
-import NextLink from "next/link";
+import { Link } from "@/app/i18n/navigation";
 import { usePathname } from "next/navigation";
 import { useTranslations } from "use-intl";
 import { Box, Flex, IconButton, VStack, HStack, Text, Spacer } from "@chakra-ui/react";
@@ -28,6 +28,7 @@ type NavItem = {
 
 const NAV_ITEMS: NavItem[] = [
     { label: "Home", href: "/home", icon: Home },
+    { label: "Info", href: "/info", icon: Info },
     { label: "Accounts", href: "/accounts", icon: Info },
     { label: "Cards", href: "/cards", icon: CreditCard },
     { label: "Payments", href: "/payments", icon: BarChart3 },
@@ -104,9 +105,9 @@ function NavRow({
 
     // v3: Box as={NextLink} + href často nejde typově přesně → dej Link wrapper čistě přes NextLink
     const linked = (
-        <NextLink href={item.href} style={{ width: "100%" }}>
+        <Link href={item.href as any} style={{ width: "100%" }}>
             {row}
-        </NextLink>
+        </Link>
     );
 
     return collapsed ? (
