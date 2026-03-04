@@ -20,8 +20,8 @@ const geistMono = Geist_Mono({
 });
 
 export const metadata: Metadata = {
-    title: "WilloSphere",
-    description: "Music platform",
+    title: "Bata Bank",
+    description: "Comprehensive bank system application",
 };
 
 export default async function LocaleLayout({ children, params }: {

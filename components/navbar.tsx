@@ -36,7 +36,7 @@ const NAV_ITEMS: NavItem[] = [
     { label: "Communication", href: "/communication", icon: MessageCircle },
     { label: "Settings", href: "/home/settings", icon: Settings },
     // sysAdmin
-    { label: "Users", href: "/users", icon: Users },
+    { label: "Users", href: "/home/users", icon: Users },
 ];
 
 function isActivePath(pathname: string, href: string) {

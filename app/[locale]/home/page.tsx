@@ -9,7 +9,6 @@ export default function Home() {
     return (
         <div className="flex min-h-screen bg-zinc-50 font-sans gap-2">
             <main className="flex-2 p-8 ">
-                <EmployeesPage />
             </main>
         </div>
     );
