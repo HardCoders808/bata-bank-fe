@@ -14,12 +14,12 @@ import { Seznam, SeznamColumn } from "@/components/table";
 type UserRole = "ACCOUNT_HOLDER" | "JUNIOR_ACCOUNT_HOLDER"| "SENIOR_ACCOUNT_HOLDER" | "BANKER";
 
 interface UserDisplayDTO {
-    id: number;
-    email: string;
-    firstName: string;
-    lastName: string;
-    role: UserRole;
-    dateOfBirth: string;
+    id:             number;
+    email:          string;
+    firstName:      string;
+    lastName:       string;
+    role:           UserRole;
+    dateOfBirth:    string;
     idNumber: string;
     birthNumber: string;
     address: string;

@@ -90,12 +90,13 @@ export default function LoginForm() {
                     flexDirection="column"
                     justifyContent="flex-end"
                     p={10}
+
                 >
                     <Box position="absolute" inset={0} bgGradient="to-br" gradientFrom="#0a1628" gradientTo="#0d2a3a" zIndex={0} />
                     <Box position="absolute" top="30%" left="20%" w="300px" h="300px" borderRadius="full" bg="radial-gradient(circle, rgba(32,178,170,0.25) 0%, transparent 70%)" zIndex={1} filter="blur(20px)" />
                     <Box position="absolute" top="10%" right="-10%" w="200px" h="400px" bg="radial-gradient(ellipse, rgba(56,189,248,0.15) 0%, transparent 70%)" zIndex={1} transform="rotate(-20deg)" filter="blur(10px)" />
                     <Box position="absolute" inset={0} zIndex={1} opacity={0.12} backgroundImage="repeating-linear-gradient(135deg, rgba(96,200,220,0.8) 0px, rgba(96,200,220,0.8) 1px, transparent 1px, transparent 55px)" />
-                    <Box position="relative" zIndex={2}>
+                    <Box position="relative" zIndex={2} mb={12}>
                         <Heading fontSize={{ base: "2xl", md: "3xl" }} fontWeight="800" color="white" lineHeight="1.2" mb={4}>
                             Secure Banking for
                             <br />
@@ -104,11 +105,7 @@ export default function LoginForm() {
                         <Text color="whiteAlpha.700" fontSize="sm" maxW="280px">
                             Manage your finances with confidence using our advanced encrypted platform.
                         </Text>
-                        <Flex gap={2} mt={8}>
-                            {[0, 1, 2].map((i) => (
-                                <Box key={i} h="3px" w={i === 0 ? "28px" : "14px"} borderRadius="full" bg={i === 0 ? "blue.400" : "whiteAlpha.300"} />
-                            ))}
-                        </Flex>
+
                     </Box>
                 </Box>
 
