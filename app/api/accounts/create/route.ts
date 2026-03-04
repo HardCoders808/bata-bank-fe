@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { cookies } from "next/headers";
 
-const BANK_API = "https://bank.dev-toner.com/api/v1/account/create";
+const BANK_API = "https://bank.dev-toner.com/api/v1/accounts/create";
 
 export async function POST(req: NextRequest) {
     try {

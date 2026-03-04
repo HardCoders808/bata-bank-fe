@@ -7,17 +7,60 @@
     }
   },
   "Navbar": {
-    "home": "Domů",
-    "title": "WilloSphere",
-    "search": "Hledat"
+    "brand": "Bata Bank",
+    "expandSidebar": "Rozbalit postranní panel",
+    "collapseSidebar": "Sbalit postranní panel",
+    "personalAccount": "Osobní účet",
+    "logout": "Odhlásit se",
+    "close": "Zavřít",
+    "nav": {
+      "home": "Domů",
+      "accounts": "Účty",
+      "cards": "Karty",
+      "transactions": "Transakce",
+      "settings": "Nastavení",
+      "users": "Uživatelé"
+    },
+    "profile": {
+      "role": "Role",
+      "accountGroup": "Skupina účtů",
+      "dateOfBirth": "Datum narození",
+      "idNumber": "Číslo OP",
+      "birthNumber": "Rodné číslo",
+      "address": "Adresa",
+      "memberSince": "Člen od"
+    }
   },
   "Footer": {
     "rights": "Všechna práva vyhrazena"
   },
   "HomePage": {
-    "title": "Nadpis"
+    "title": "Nadpis",
+    "greetingMorning": "Dobré ráno,",
+    "greetingAfternoon": "Dobré odpoledne,",
+    "greetingEvening": "Dobrý večer,",
+    "newPayment": "Nová platba",
+    "totalBalance": "Celkový zůstatek",
+    "monthlyIncome": "Měsíční příjmy",
+    "monthlyExpenses": "Měsíční výdaje",
+    "savingsRate": "Míra úspor",
+    "vsLastMonth": "vs. minulý měsíc",
+    "myAccounts": "Moje účty",
+    "viewAll": "Zobrazit vše",
+    "quickActions": "Rychlé akce",
+    "sendMoney": "Odeslat peníze",
+    "payBills": "Zaplatit účty",
+    "topUp": "Dobít",
+    "savings": "Úspory",
+    "spendingOverview": "Přehled výdajů",
+    "recentTransactions": "Poslední transakce",
+    "seeAll": "Zobrazit vše",
+    "securityStatus": "Stav zabezpečení",
+    "allSystemsSecure": "Všechny systémy v pořádku",
+    "twoFA": "Dvoufaktorové ověření",
+    "emailVerified": "E-mail ověřen",
+    "availableBalance": "Dostupný zůstatek"
   },
-
   "RegistrationForm": {
     "title": "Vytvořit účet"
   }

@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { cookies } from "next/headers";
 
-const BANK_API = "https://bank.dev-toner.com/api/v1/account/list";
+const BANK_API = "https://bank.dev-toner.com/api/v1/accounts/list";
 
 export async function GET(_req: NextRequest) {
     try {

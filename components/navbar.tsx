@@ -9,10 +9,11 @@ import {
     Dialog, Portal, CloseButton, Stack,
 } from "@chakra-ui/react";
 import { Tooltip } from "@/components/ui/tooltip";
+import LocaleSwitcher from "@/components/locale/locale_switcher";
 import {
     Landmark, PanelLeftClose, PanelLeftOpen,
-    Home, BarChart3, Info, CreditCard, ChartNoAxesColumn,
-    MessageCircle, Settings, Users, LogOut, User,
+    Home, BarChart3, CreditCard,
+    Settings, Users, LogOut, User, SquareUserRound
 } from "lucide-react";
 
 // ─── Typy ─────────────────────────────────────────────────────────────────────
@@ -39,17 +40,13 @@ interface UserProfile {
 
 // ─── Nav items ────────────────────────────────────────────────────────────────
 
-const NAV_ITEMS: NavItem[] = [
-    { label: "Home",          href: "/home",          icon: Home          },
-    { label: "Info",          href: "/info",          icon: Info          },
-    { label: "Accounts",      href: "/home/accounts",      icon: CreditCard          },
-    { label: "Cards",         href: "/home/cards",         icon: CreditCard    },
-    { label: "Payments",      href: "/payments",      icon: BarChart3     },
-    { label: "Stats",         href: "/stats",         icon: ChartNoAxesColumn },
-    { label: "Communication", href: "/communication", icon: MessageCircle },
-    { label: "Settings",      href: "/home/settings", icon: Settings      },
-    { label: "Users",         href: "/home/users",    icon: Users         },
-];
+const NAV_ITEMS_CONFIG = [
+    { key: "nav.home",         href: "/home",              icon: Home           },
+    { key: "nav.accounts",     href: "/home/accounts",     icon: SquareUserRound },
+    { key: "nav.cards",        href: "/home/cards",             icon: CreditCard     },
+    { key: "nav.settings",     href: "/home/settings",     icon: Settings       },
+    { key: "nav.users",        href: "/home/users",        icon: Users          },
+] as const;
 
 function isActivePath(pathname: string, href: string) {
     if (href === "/") return pathname === "/";
@@ -118,15 +115,13 @@ function DetailRow({ label, value }: { label: string; value?: string }) {
 // ─── UserCard ─────────────────────────────────────────────────────────────────
 
 function UserCard({
-                      collapsed,
-                      onLogout,
-                      user,
-                      onProfileClick,
-                  }: {
+    collapsed, onLogout, user, onProfileClick, labels,
+}: {
     collapsed: boolean;
     onLogout: () => void;
     user: UserProfile | null;
     onProfileClick: () => void;
+    labels: { personalAccount: string; logout: string };
 }) {
     const firstName = user?.firstName ?? "…";
     const lastName  = user?.lastName  ?? "";
@@ -168,7 +163,7 @@ function UserCard({
                         {firstName} {lastName}
                     </Text>
                     <Text fontSize="xs" color="gray.500" truncate>
-                        {user?.role ?? "…"}
+                        {user?.role ?? labels.personalAccount}
                     </Text>
                 </Box>
                 <Box ml="auto" color="#64748b">
@@ -182,7 +177,7 @@ function UserCard({
                     _hover={{ bg: "#4d0500" }} onClick={onLogout}
             >
                 <LogOut size={14} color="#ef4444" />
-                <Text fontSize="xs" fontWeight="500" color="#ef4444">Logout</Text>
+                <Text fontSize="xs" fontWeight="500" color="#ef4444">{labels.logout}</Text>
             </HStack>
         </Box>
     );
@@ -191,16 +186,21 @@ function UserCard({
 // ─── Navbar ───────────────────────────────────────────────────────────────────
 
 export default function Navbar() {
-    const pathname             = usePathname();
-    const router               = useRouter();
-    const { locale }           = useParams<{ locale: string }>();
-    const [collapsed, setCollapsed] = React.useState(false);
-    const t                    = useTranslations("Navbar");
+    const pathname                      = usePathname();
+    const router                        = useRouter();
+    const { locale }                    = useParams<{ locale: string }>();
+    const [collapsed, setCollapsed]     = React.useState(false);
+    const t                             = useTranslations("Navbar");
 
-    const [user, setUser]           = useState<UserProfile | null>(null);
+    const [user, setUser]               = useState<UserProfile | null>(null);
     const [profileOpen, setProfileOpen] = useState(false);
 
-    // Načti profil při mountu
+    const navItems: NavItem[] = NAV_ITEMS_CONFIG.map((item) => ({
+        label: t(item.key as any),
+        href:  item.href,
+        icon:  item.icon,
+    }));
+
     useEffect(() => {
         fetch("/api/users/me")
             .then((r) => r.ok ? r.json() : null)
@@ -228,15 +228,16 @@ export default function Navbar() {
                         <div className="flex items-center gap-3">
                             <Landmark color="#008080" />
                             <Text fontWeight="bold" fontSize="sm" truncate color="#008080">
-                                Bata Bank
+                                {t("brand")}
                             </Text>
                         </div>
                     )}
                     <Spacer />
-                    <IconButton aria-label={collapsed ? "Expand sidebar" : "Collapse sidebar"}
-                                size="sm" variant="ghost" color="white"
-                                _hover={{ bg: "#025e5e" }} _active={{ bg: "#014c4c" }}
-                                onClick={() => setCollapsed((v) => !v)}
+                    <IconButton
+                        aria-label={collapsed ? t("expandSidebar") : t("collapseSidebar")}
+                        size="sm" variant="ghost" color="white"
+                        _hover={{ bg: "#025e5e" }} _active={{ bg: "#014c4c" }}
+                        onClick={() => setCollapsed((v) => !v)}
                     >
                         {collapsed ? <PanelLeftOpen size={18} /> : <PanelLeftClose size={18} />}
                     </IconButton>
@@ -244,17 +245,25 @@ export default function Navbar() {
 
                 {/* Nav items */}
                 <VStack alignItems="stretch" gap={1} flex="1" mt={1}>
-                    {NAV_ITEMS.map((item) => (
+                    {navItems.map((item) => (
                         <NavRow key={item.href} item={item} collapsed={collapsed}
                                 active={isActivePath(pathname, item.href)} />
                     ))}
                 </VStack>
+
+                {/* Language switcher */}
+                {!collapsed && (
+                    <Box mt={3} px={1}>
+                        <LocaleSwitcher />
+                    </Box>
+                )}
 
                 <UserCard
                     collapsed={collapsed}
                     onLogout={handleLogout}
                     user={user}
                     onProfileClick={() => setProfileOpen(true)}
+                    labels={{ personalAccount: t("personalAccount"), logout: t("logout") }}
                 />
             </Flex>
 
@@ -285,13 +294,13 @@ export default function Navbar() {
                             </Dialog.Header>
                             <Dialog.Body py={5}>
                                 <Stack gap={3}>
-                                    <DetailRow label="Role"           value={user?.role} />
-                                    <DetailRow label="Account Group"  value={user?.accountGroup ?? "—"} />
-                                    <DetailRow label="Datum narození" value={user?.dateOfBirth} />
-                                    <DetailRow label="Číslo OP"       value={user?.idNumber} />
-                                    <DetailRow label="Rodné číslo"    value={user?.birthNumber} />
-                                    <DetailRow label="Adresa"         value={user?.address} />
-                                    <DetailRow label="Člen od"        value={user?.createdAt?.slice(0, 10)} />
+                                    <DetailRow label={t("profile.role")}        value={user?.role} />
+                                    <DetailRow label={t("profile.accountGroup")} value={user?.accountGroup} />
+                                    <DetailRow label={t("profile.dateOfBirth")} value={user?.dateOfBirth} />
+                                    <DetailRow label={t("profile.idNumber")}    value={user?.idNumber} />
+                                    <DetailRow label={t("profile.birthNumber")} value={user?.birthNumber} />
+                                    <DetailRow label={t("profile.address")}     value={user?.address} />
+                                    <DetailRow label={t("profile.memberSince")} value={user?.createdAt?.slice(0, 10)} />
                                 </Stack>
                             </Dialog.Body>
                             <Dialog.Footer borderTop="1px solid" borderColor="#1a3a50" pt={4}>
@@ -304,7 +313,7 @@ export default function Navbar() {
                                         onMouseEnter={(e) => (e.currentTarget.style.backgroundColor = "#112840")}
                                         onMouseLeave={(e) => (e.currentTarget.style.backgroundColor = "#0a1929")}
                                     >
-                                        Zavřít
+                                        {t("close")}
                                     </Box>
                                 </Dialog.ActionTrigger>
                             </Dialog.Footer>

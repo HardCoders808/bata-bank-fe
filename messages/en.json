@@ -7,17 +7,60 @@
     }
   },
   "Navbar": {
-    "home": "Home",
-    "title": "WilloSphere",
-    "search": "Search"
+    "brand": "Bata Bank",
+    "expandSidebar": "Expand sidebar",
+    "collapseSidebar": "Collapse sidebar",
+    "personalAccount": "Personal account",
+    "logout": "Logout",
+    "close": "Close",
+    "nav": {
+      "home": "Home",
+      "accounts": "Accounts",
+      "cards": "Cards",
+      "transactions": "Transactions",
+      "settings": "Settings",
+      "users": "Users"
+    },
+    "profile": {
+      "role": "Role",
+      "accountGroup": "Account Group",
+      "dateOfBirth": "Date of Birth",
+      "idNumber": "ID Number",
+      "birthNumber": "Birth Number",
+      "address": "Address",
+      "memberSince": "Member since"
+    }
   },
   "Footer": {
     "rights": "All rights reserved"
   },
   "HomePage": {
-    "title": "Header"
+    "title": "Header",
+    "greetingMorning": "Good morning,",
+    "greetingAfternoon": "Good afternoon,",
+    "greetingEvening": "Good evening,",
+    "newPayment": "New Payment",
+    "totalBalance": "Total Balance",
+    "monthlyIncome": "Monthly Income",
+    "monthlyExpenses": "Monthly Expenses",
+    "savingsRate": "Savings Rate",
+    "vsLastMonth": "vs last month",
+    "myAccounts": "My Accounts",
+    "viewAll": "View all",
+    "quickActions": "Quick Actions",
+    "sendMoney": "Send Money",
+    "payBills": "Pay Bills",
+    "topUp": "Top Up",
+    "savings": "Savings",
+    "spendingOverview": "Spending Overview",
+    "recentTransactions": "Recent Transactions",
+    "seeAll": "See all",
+    "securityStatus": "Security Status",
+    "allSystemsSecure": "All systems secure",
+    "twoFA": "2FA Authentication",
+    "emailVerified": "Email Verified",
+    "availableBalance": "Available Balance"
   },
-
   "RegistrationForm": {
     "title": "Create account"
   }
