@@ -1,16 +1,17 @@
 "use client";
 
-import { useState, useRef, KeyboardEvent, ClipboardEvent } from "react";
-import { useRouter } from "next/navigation";
+import { useState, useRef } from "react";
+import { useRouter, useParams } from "next/navigation";
 import {
-    Box, Flex, Text, Button, IconButton, VStack, HStack, Separator,
+    Box, Flex, Text, Button, VStack, HStack,
 } from "@chakra-ui/react";
-import { ShieldCheck, Smartphone, RefreshCw, X, ChevronRight } from "lucide-react";
+import { ShieldCheck, ChevronRight, RefreshCw, AlertCircle } from "lucide-react";
 
-export default function MfaPage() {
-    const router = useRouter();
-    const [digits, setDigits] = useState<string[]>(["", "", "", "", "", ""]);
-    const [error, setError] = useState("");
+export default function LoginMfaPage() {
+    const router             = useRouter();
+    const { locale }         = useParams<{ locale: string }>();
+    const [digits, setDigits]   = useState<string[]>(["", "", "", "", "", ""]);
+    const [error, setError]     = useState<string | null>(null);
     const [loading, setLoading] = useState(false);
     const inputs = useRef<(HTMLInputElement | null)[]>([]);
 
@@ -19,40 +20,57 @@ export default function MfaPage() {
         const newDigits = [...digits];
         newDigits[index] = value;
         setDigits(newDigits);
-        setError("");
+        setError(null);
         if (value && index < 5) inputs.current[index + 1]?.focus();
     };
 
-    const handleKeyDown = (index: number, e: KeyboardEvent<HTMLInputElement>) => {
+    const handleKeyDown = (index: number, e: React.KeyboardEvent<HTMLInputElement>) => {
         if (e.key === "Backspace" && !digits[index] && index > 0) {
             inputs.current[index - 1]?.focus();
         }
     };
 
-    const handlePaste = (e: ClipboardEvent<HTMLInputElement>) => {
+    const handlePaste = (e: React.ClipboardEvent<HTMLInputElement>) => {
         e.preventDefault();
         const pasted = e.clipboardData.getData("text").replace(/\D/g, "").slice(0, 6);
         if (!pasted) return;
         const newDigits = [...digits];
-        pasted.split("").forEach((char, i) => { newDigits[i] = char; });
+        pasted.split("").forEach((char: string, i: number) => { newDigits[i] = char; });
         setDigits(newDigits);
         inputs.current[Math.min(pasted.length, 5)]?.focus();
     };
 
     const handleVerify = async () => {
         const code = digits.join("");
+        console.log(code);
         if (code.length < 6) { setError("Zadejte všech 6 číslic."); return; }
-        setLoading(true);
-        await new Promise((r) => setTimeout(r, 1200)); // TODO: nahraď voláním API
-        setLoading(false);
-        router.push("/dashboard"); // TODO: uprav cíl
-    };
 
-    const handleResend = () => {
-        setDigits(["", "", "", "", "", ""]);
-        setError("");
-        inputs.current[0]?.focus();
-        // TODO: zavolej API pro znovu zaslání kódu
+        setLoading(true);
+        setError(null);
+
+        try {
+            const res = await fetch("/api/auth/verify-login", {
+                method: "POST",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify({ code }),
+            });
+
+            const data = await res.json();
+
+            if (!res.ok) {
+                throw new Error(data.message ?? "Neplatný kód.");
+            }
+
+            sessionStorage.setItem("auth_expires_in", String(data.expiresIn));
+            router.push(`/${locale}/home`);
+
+        } catch (err: unknown) {
+            setError(err instanceof Error ? err.message : "Neplatný kód.");
+            setDigits(["", "", "", "", "", ""]);
+            setTimeout(() => inputs.current[0]?.focus(), 50);
+        } finally {
+            setLoading(false);
+        }
     };
 
     const isComplete = digits.every((d) => d !== "");
@@ -69,75 +87,49 @@ export default function MfaPage() {
                 {/* Header */}
                 <Flex
                     align="center"
-                    justify="space-between"
-                    borderBottom="1px solid"
-                    borderColor="#1a3a50"
-                    pb={4}
-                    mb={8}
-                >
-                    <HStack gap={2}>
-                        <Flex
-                            w="32px" h="32px"
-                            align="center" justify="center"
-                            borderRadius="lg"
-                            border="1px solid"
-                            borderColor="#1a3a50"
-                            style={{ backgroundColor: "#0a1929" }}
-                        >
-                            <ShieldCheck size={16} color="#38bdf8" />
-                        </Flex>
-                        <Text color="white" fontWeight="700" fontSize="lg">BataBank</Text>
-                    </HStack>
-                    <IconButton
-                        aria-label="Zavřít"
-                        size="sm"
-                        variant="ghost"
-                        onClick={() => router.back()}
-                        style={{ backgroundColor: "#112840", border: "1px solid #1a3a50", borderRadius: "50%", color: "#94a3b8" }}
-                    >
-                        <X size={15} />
-                    </IconButton>
-                </Flex>
-
-                {/* Icon area */}
-                <Flex
-                    align="center"
                     justify="center"
-                    borderRadius="xl"
-                    border="1px solid"
-                    borderColor="#1a3a50"
-                    minH="140px"
-                    mb={7}
-                    style={{ background: "linear-gradient(135deg, rgba(10,24,46,0.9), rgba(13,31,48,0.5))" }}
+                    mb={8}
+                    direction="column"
+                    gap={3}
                 >
                     <Flex
-                        align="center"
-                        justify="center"
+                        w="56px" h="56px"
+                        align="center" justify="center"
                         borderRadius="full"
                         border="1px solid"
                         borderColor="#1a3a50"
-                        p={6}
                         style={{
-                            backgroundColor: "rgba(10,24,46,0.8)",
-                            boxShadow: "0 0 32px rgba(56,189,248,0.12)",
+                            backgroundColor: "#0a1929",
+                            boxShadow: "0 0 24px rgba(56,189,248,0.1)",
                         }}
                     >
-                        <Smartphone size={44} color="#38bdf8" strokeWidth={1.2} />
+                        <ShieldCheck size={24} color="#38bdf8" />
                     </Flex>
+                    <VStack gap={1} textAlign="center">
+                        <Text color="white" fontSize="xl" fontWeight="700">
+                            Dvoufaktorové ověření
+                        </Text>
+                        <Text color="#64748b" fontSize="sm" maxW="280px">
+                            Zadejte 6místný kód z vaší autentifikační aplikace.
+                        </Text>
+                    </VStack>
                 </Flex>
 
-                {/* Title */}
-                <VStack gap={2} mb={7} textAlign="center">
-                    <Text color="white" fontSize="2xl" fontWeight="700">
-                        Zabezpečené přihlášení
-                    </Text>
-                    <Text color="#94a3b8" fontSize="sm" lineHeight="tall" maxW="280px">
-                        Zadejte 6místný kód, který jsme právě zaslali na vaše registrované zařízení.
-                    </Text>
-                </VStack>
+                {/* Error banner */}
+                {error && (
+                    <Flex
+                        align="center" gap={2}
+                        p={3} mb={4} borderRadius="lg"
+                        border="1px solid" borderColor="#f87171"
+                        style={{ backgroundColor: "rgba(248,113,113,0.08)" }}
+                    >
+                        <AlertCircle size={15} color="#f87171" />
+                        <Text color="#f87171" fontSize="sm">{error}</Text>
+                    </Flex>
+                )}
 
-                {/* OTP Inputs */}
-                <HStack gap={2} mb={2} direction="row">
+                {/* OTP inputs */}
+                <HStack gap={2} mb={6}>
                     {digits.map((digit, i) => (
                         <input
                             key={i}
@@ -151,10 +143,10 @@ export default function MfaPage() {
                             onPaste={handlePaste}
                             style={{
                                 flex: 1,
-                                maxWidth: 52,
-                                height: 52,
+                                height: 54,
+                                width: 50,
                                 textAlign: "center",
-                                fontSize: 22,
+                                fontSize: 20,
                                 fontWeight: 700,
                                 backgroundColor: "#112840",
                                 border: `2px solid ${error ? "#f87171" : digit ? "#38bdf8" : "#1a3a50"}`,
@@ -167,56 +159,43 @@ export default function MfaPage() {
                     ))}
                 </HStack>
 
-                {/* Error */}
-                {error && (
-                    <Text color="red.400" fontSize="xs" textAlign="center" mb={2}>{error}</Text>
-                )}
-
                 {/* Verify button */}
                 <Button
-                    w="100%"
-                    mt={5}
-                    mb={5}
-                    size="lg"
+                    w="100%" size="lg"
                     disabled={!isComplete || loading}
+                    loading={loading}
+                    loadingText="Ověřuji…"
                     onClick={handleVerify}
+                    mb={5}
                     style={{
-                        backgroundColor: isComplete && !loading ? "#0a1929" : "rgba(10,24,46,0.35)",
-                        color: isComplete && !loading ? "white" : "rgba(255,255,255,0.3)",
+                        backgroundColor: isComplete ? "#0a1929" : "rgba(10,24,46,0.35)",
+                        color: isComplete ? "white" : "rgba(255,255,255,0.3)",
                         border: `1px solid ${isComplete ? "#1a3a50" : "transparent"}`,
                         borderRadius: 12,
                         cursor: isComplete && !loading ? "pointer" : "not-allowed",
-                        boxShadow: isComplete ? "0 4px 20px rgba(56,189,248,0.1)" : "none",
+                        boxShadow: isComplete ? "0 4px 20px rgba(56,189,248,0.08)" : "none",
                     }}
+                    onMouseEnter={(e) => { if (isComplete) e.currentTarget.style.backgroundColor = "#112840"; }}
+                    onMouseLeave={(e) => { if (isComplete) e.currentTarget.style.backgroundColor = "#0a1929"; }}
                 >
-                    {loading ? "Ověřuji…" : <><span>Ověřit a pokračovat</span> <ChevronRight size={16} /></>}
+                    Ověřit a přihlásit se <ChevronRight size={16} />
                 </Button>
 
-                {/* Helper actions */}
-                <VStack gap={4}>
+                {/* Back to login */}
+                <Flex justify="center">
                     <Button
-                        variant="ghost"
-                        size="sm"
-                        onClick={handleResend}
-                        style={{ color: "#38bdf8", fontWeight: 600 }}
-                    >
-                        <RefreshCw size={13} /> Zaslat kód znovu
-                    </Button>
-                    <Separator borderColor="#1a3a50" w="100%" />
-                    <Button
-                        variant="ghost"
-                        size="sm"
+                        variant="ghost" size="sm"
+                        onClick={() => router.push(`/${locale}/login`)}
                         style={{ color: "#64748b" }}
+                        _hover={{ color: "white" }}
                     >
-                        Zkusit jiný způsob ověření
+                        <RefreshCw size={13} /> Zpět na přihlášení
                     </Button>
-                </VStack>
+                </Flex>
 
-                {/* Footer */}
-                <Text color="#334155" fontSize="xs" textAlign="center" mt={10}>
-                    Bezpečné bankovnictví BataBank © 2024
+                <Text color="#334155" fontSize="xs" textAlign="center" mt={8}>
+                    BataBank © 2024
                 </Text>
-
             </Box>
         </Flex>
     );

@@ -34,7 +34,7 @@ const NAV_ITEMS: NavItem[] = [
     { label: "Payments", href: "/payments", icon: BarChart3 },
     { label: "Stats", href: "/stats", icon: ChartNoAxesColumn },
     { label: "Communication", href: "/communication", icon: MessageCircle },
-    { label: "Settings", href: "/settings", icon: Settings },
+    { label: "Settings", href: "/home/settings", icon: Settings },
     // sysAdmin
     { label: "Users", href: "/users", icon: Users },
 ];

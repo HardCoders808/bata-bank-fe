@@ -15,23 +15,7 @@ import {
 } from "@chakra-ui/react";
 import { FiMail, FiLock, FiEye, FiEyeOff, FiAlertCircle } from "react-icons/fi";
 
-const API_URL = "https://bank.dev-toner.com/v1/api/v1/auth/login";
-
-interface LoginSuccess {
-    token: string;
-    expiresIn: number;
-}
-
-interface LoginError {
-    timestamp: string;
-    status: number;
-    error: string;
-    code: string;
-    message: string;
-    path: string;
-}
-
-async function loginRequest(email: string, password: string): Promise<{ expiresIn: number }> {
+async function loginRequest(email: string, password: string): Promise<{ ok: boolean; mfaRequired: boolean; expiresIn: number; challengeId?: string }> {
     const res = await fetch("/api/auth/login", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
@@ -56,16 +40,26 @@ export default function LoginForm() {
     const [rememberMe, setRememberMe] = useState(false);
     const [isLoading, setIsLoading] = useState(false);
     const [error, setError] = useState<string | null>(null);
-    const { locale }        = useParams<{ locale: string }>();
+    const { locale } = useParams<{ locale: string }>();
+
     const handleSubmit = async (e: React.FormEvent) => {
         e.preventDefault();
         setError(null);
         setIsLoading(true);
 
         try {
-            const data = await loginRequest(email, password); // ← tady
+            const data = await loginRequest(email, password);
+
+            if (data.mfaRequired) {
+                // MFA je vyžadováno → přesměruj na MFA stránku
+                router.push(`/${locale}/login/mfa`);
+                return;
+            }
+
+            // Normální přihlášení bez MFA
             sessionStorage.setItem("auth_expires_in", String(data.expiresIn));
             router.push(`/${locale}/home`);
+
         } catch (err: unknown) {
             setError(err instanceof Error ? err.message : "Something went wrong.");
         } finally {

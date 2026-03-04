@@ -29,40 +29,52 @@ export async function POST(req: NextRequest) {
             );
         }
 
-        const { token, expiresIn } = data;
+        const { token, expiresIn, mfaRequired, challengeId } = data;
 
         // 1. Forward rotated cookies (refresh_token, device_id)
         bankCookies.forEach((cookieStr) => {
-            // Simple parser for Set-Cookie string
-            const parts = cookieStr.split(";").map(p => p.trim());
+            const parts = cookieStr.split(";").map((p: string) => p.trim());
             const [nameValue, ...attrs] = parts;
             const [name, ...valueParts] = nameValue.split("=");
             const value = valueParts.join("=");
 
-            const isSecure = attrs.some(a => a.toLowerCase() === "secure");
-            const isHttpOnly = attrs.some(a => a.toLowerCase() === "httponly");
-            
+            const isSecure = attrs.some((a: string) => a.toLowerCase() === "secure");
+            const isHttpOnly = attrs.some((a: string) => a.toLowerCase() === "httponly");
+
             cookieStore.set(name, value, {
                 path: "/",
                 httpOnly: isHttpOnly,
                 secure: process.env.NODE_ENV === "production" ? isSecure : false,
                 sameSite: "lax",
-                // We don't manually set Max-Age here to preserve what the bank sent
-                // but Next.js cookies().set() is more reliable
             });
             console.log(`[login] Forwarded cookie: ${name}`);
         });
 
-        // 2. Set auth_token
-        cookieStore.set("auth_token", token, {
+        // 2. Pokud MFA není vyžadováno — nastav auth_token a vrať ok
+        if (!mfaRequired) {
+            cookieStore.set("auth_token", token, {
+                path: "/",
+                httpOnly: true,
+                secure: process.env.NODE_ENV === "production",
+                sameSite: "lax",
+                maxAge: expiresIn,
+            });
+            console.log(`[login] No MFA required, auth_token set`);
+            return NextResponse.json({ ok: true, mfaRequired: false, expiresIn });
+        }
+
+        // 3. MFA je vyžadováno — ulož challengeId do cookie pro verify krok
+        cookieStore.set("mfa_challenge_id", challengeId, {
             path: "/",
             httpOnly: true,
             secure: process.env.NODE_ENV === "production",
             sameSite: "lax",
-            maxAge: expiresIn
+            maxAge: 60 * 10, // 10 minut
         });
 
-        return NextResponse.json({ ok: true, expiresIn, token });
+        console.log(`[login] MFA required, challengeId saved: ${challengeId}`);
+        return NextResponse.json({ ok: true, mfaRequired: true, challengeId });
+
     } catch (err) {
         console.error("[login] Fatal error:", err);
         return NextResponse.json(
