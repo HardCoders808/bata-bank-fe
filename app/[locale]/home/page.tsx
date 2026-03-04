@@ -8,7 +8,7 @@ import {
     CreditCard, Wallet, Send, Receipt, PiggyBank, Shield,
     Eye, EyeOff, Plus, Bell,
 } from "lucide-react";
-import { useState } from "react";
+import {useEffect, useState} from "react";
 
 // ── Mock Data ──────────────────────────────────────────────────────────────────
 
@@ -169,6 +169,14 @@ export default function Home() {
     const totalBalance   = ACCOUNTS.reduce((s, a) => s + a.balance, 0);
     const monthlyIncome  = TRANSACTIONS.filter(t => t.amount > 0).reduce((s, t) => s + t.amount, 0);
     const monthlyExpenses = TRANSACTIONS.filter(t => t.amount < 0).reduce((s, t) => s + t.amount, 0);
+    const [userName, setUserName] = useState<string | null>(null);
+
+    useEffect(() => {
+        fetch("/api/users/me")
+            .then(r => r.ok ? r.json() : null)
+            .then(data => { if (data) setUserName(`${data.firstName} ${data.lastName}`); })
+            .catch(() => {});
+    }, []);
 
     return (
         <Box minH="100vh" bg="#0d1117" p={{ base: 4, md: 8 }}>
@@ -177,7 +185,7 @@ export default function Home() {
             <Flex justify="space-between" align="center" mb={8}>
                 <Box>
                     <Text fontSize="sm" color="gray.500" mb={1}>Good morning,</Text>
-                    <Heading fontSize="2xl" fontWeight="800" color="white">Jan Novák 👋</Heading>
+                    <Heading fontSize="2xl" fontWeight="800" color="white">{userName ?? "…"} 👋</Heading>
                 </Box>
                 <HStack gap={3}>
                     <Box
