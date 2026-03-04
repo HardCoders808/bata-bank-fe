@@ -43,7 +43,7 @@ const NAV_ITEMS: NavItem[] = [
     { label: "Home",          href: "/home",          icon: Home          },
     { label: "Info",          href: "/info",          icon: Info          },
     { label: "Accounts",      href: "/home/accounts",      icon: CreditCard          },
-    { label: "Cards",         href: "/cards",         icon: CreditCard    },
+    { label: "Cards",         href: "/home/cards",         icon: CreditCard    },
     { label: "Payments",      href: "/payments",      icon: BarChart3     },
     { label: "Stats",         href: "/stats",         icon: ChartNoAxesColumn },
     { label: "Communication", href: "/communication", icon: MessageCircle },
